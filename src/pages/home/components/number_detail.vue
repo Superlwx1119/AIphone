@@ -78,7 +78,7 @@
 					</el-col>
 					<el-col :span='12'>
 						<div class="talkMsg">
-							
+							<p :class="{'left':item.split(':')[0]=='Amain1-kaichangbai','right':item.split(':')[0]=='admin2'}" v-for="item of txtArr"><img src="../../../assets/img/touxiang.png"/><span>{{item.split(':')[1]}}</span></p>
 						</div>
 					</el-col>
 				</el-row>
@@ -92,8 +92,7 @@
 </template>
 
 <script>
-		const clickoutside = {
-	 // 初始化指令
+	const clickoutside = {
 	  bind(el, binding, vnode) {
 	    function documentHandler(e) {
 	  // 这里判断点击的元素是否是本身，是本身，则返回
@@ -128,7 +127,8 @@
 			}
 		},
 		props:{
-			detail_data:Object
+			detail_data:Object,
+			txtArr:Array
 		},
 		methods:{
 			handleClose(e) {
@@ -139,7 +139,7 @@
 			},
 			handleClick() {
 				
-	      }
+	        }
 		},
 		watch:{
 			//监听选项卡
@@ -159,6 +159,22 @@
 		padding: 0;
 		margin: 0;
 		list-style: none;
+	}
+	.right{
+		float: right;
+		clear: both;
+		height: 40px;
+		line-height: 40px;
+	}
+	.right img{
+		float: right;
+		clear: both;
+	}
+	.left{
+		height: 40px;
+		line-height: 40px;
+		float: left;
+		clear: both;
 	}
 	.numDetail{
 		width: 100%;
@@ -216,5 +232,18 @@
 	.talkMsg{
 		overflow: overlay;
 		height: 600px;
+	}
+	.talkMsg img{
+		width: 30px;
+		height: 30px;
+		vertical-align: middle;
+		padding: 5px;
+	}
+	.talkMsg p{
+		margin: 10px 0;
+	}
+	.talkMsg span{
+		background: lightblue;
+		padding: 10px;
 	}
 </style>

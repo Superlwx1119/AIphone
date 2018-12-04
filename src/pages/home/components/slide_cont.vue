@@ -79,7 +79,7 @@
 		</table>
 			</form>
 		</div>
-		<p v-for="item of list">{{item}}</p>
+		<!--<p v-for="item of result.phoneNumber">{{item}}</p>-->
 		<table class="selectCont" v-for="(page,index) of pages" >
 			<tr v-if="index+1==pageNumber">
 				<th>被叫信息</th>
@@ -93,15 +93,16 @@
 				<th>操作</th>
 			</tr>
 			<tr v-for="SearchList of page" v-if="index+1==pageNumber">
-				<td>{{SearchList.bno}}</td>
-				<td></td>
-				<td>{{SearchList.intentTag}}</td>
-				<td>{{SearchList.talkRound}}</td>
-				<td>{{SearchList.outbegintime}}</td>
-				<td>0<span class="mint">分</span>{{SearchList.outduration}}<span class="mint">秒</span></td>
-				<td>{{SearchList.lineNumber}}</td>
-				<td>{{SearchList.outresult}}</td>
-				<td class="details" @click="showDetail($event)" :id='SearchList.recid'>详情</td>
+				<td colspan="8" v-if="!page.length">无匹配数据!</td>
+				<td v-if="page.length">{{SearchList.bno}}</td>
+				<td v-if="page.length"></td>
+				<td v-if="page.length">{{SearchList.intentTag}}</td>
+				<td v-if="page.length">{{SearchList.talkRound}}</td>
+				<td v-if="page.length">{{SearchList.outbegintime}}</td>
+				<td v-if="page.length">0<span class="mint">分</span>{{SearchList.outduration}}<span class="mint">秒</span></td>
+				<td v-if="page.length">{{SearchList.lineNumber}}</td>
+				<td v-if="page.length">{{SearchList.outresult}}</td>
+				<td v-if="page.length" class="details" @click="showDetail($event)" :id='SearchList.recid'>详情</td>
 			</tr>
 		</table>
 		<div class="pages" >
@@ -115,7 +116,7 @@
 			<span>总共1条，共1页，每页<select name="" v-model="changPagenum" ref='changPage' @change="changPageNum" id=""><option v-for="item of pageListNum">{{item}}</option></select></span>
 		</div>
 		<!--<Datails @close='closeDetail' v-if='detail_onoff' />-->
-		<NumDatails @close='closeDetail' v-if='detail_onoff' :detail_data='detail_data' />
+		<NumDatails @close='closeDetail' v-if='detail_onoff' :txtArr='txtArr' :detail_data='detail_data' />
 	</div>
 </template>
 
@@ -184,11 +185,29 @@
 			        },
 			        searchResult:{
 			        	phoneNumber:[],
+			        	outduration:[],
+			        	lineNumber:[],
+			        	outresult:[],
 				        pageCount:'',
 				        size:'',
+				        intentTag:[],
+			        	talkRound:[],
+			        	outbegintime:[],
+			        	rows:[]
+			        },
+			        result:{
+			        	rows:[],
+			        	phoneNumber:[],
+			        	intentTag:[],
+			        	talkRound:[],
+			        	outbegintime:[],
+			        	outduration:[],
+			        	lineNumber:[],
+			        	outresult:[]
 			        },
 			        detail_data:{},
-			        list:[]
+			        list:[],
+			        txtArr:[]
 			    }
 		},
 		computed:{
@@ -196,21 +215,6 @@
 				//意向标签选择
 				return this.checkValue.map(item => item);
 			},
-//			searchNum(){
-//				if(this.keyword===''){
-//					return this.keyword
-//				}else{
-//					var numRes=[];
-//					for(let i=0;i<this.formData.rows.length;i++){
-//						if(this.formData.rows[i].bno.indexOf(this.keyword)>-1){
-//							numRes.push(this.formData.rows[i])
-//						}
-//						console.log(numRes[i].bno)
-//					}
-//					
-//					return numRes
-//				}
-//			},
 			pages(){
 				//每页显示数据
 		  		const pages = []; // pages是为二维数组
@@ -221,7 +225,6 @@
 		          }
 		          pages[page].push(item);
 		        });
-		        console.log(pages)
 		        return pages;
 		  	}
 		},
@@ -264,44 +267,32 @@
 		  		}
 			},
 			closeDetail(val){
-				console.log(val)
 				this.detail_onoff=val
 			},
 			showDetail(event){
 				//查看详情
 				var el = event.currentTarget;
 				var id=el.id
-				console.log(id)
 				this.detail_onoff=true;
-//				axios({
-//					method:'post',
-//					url:'http://172.16.1.101:8080/AICALL2018/getSheetRecordByRecId',
-//					data: {recid:id}
-//				}).then((data)=>{
-//					console.log(data)
-//				})
-
-
 				this.$http.post('http://172.16.1.101:8080/AICALL2018/getSheetRecordByRecId',{
 					recid:id
 				}, {
 	              emulateJSON: true
 	            }).then((data)=>{
 	            	this.detail_data=data.body;
-//	            	console.log(this.detail_data)
+	            	var str = this.detail_data.magicCode;
+	            	var arr = str.split('|')
+	            	this.txtArr=arr
 	            })
 			},
 			Search(){
 				//查询匹配操作
-				this.formData.rows.forEach((value,index)=>{
-					this.searchResult.phoneNumber.push(value.bno)
+				var _this=this;
+				console.log(_this.result.phoneNumber)//号码模糊搜索数组
+				var tag_node=_this.formData.rows.filter(function(e){
+					return e.talkRound==_this.$refs.callround.value.trim()||e.intentTag=='A'&&e.bno==_this.result.phoneNumber[0]
 				})
-				var fool=this.searchResult.phoneNumber.filter(
-					function(item){
-						return item<16666666666
-					}
-				)
-				console.log(fool)
+				console.log(tag_node)
 //				console.log(this.$refs.callround.value.trim())
 //				console.log(this.checktag)
 //				console.log(this.$refs.searchnum.value.trim())
@@ -338,7 +329,28 @@
 					this.formData.size=res.size
 					this.formData.rows=res.rows
 					this.formData.query1 = this.$refs.searchnum.value.trim();
-					console.log(this.formData.query1)
+					var _this=this;
+					_this.formData.rows.forEach((value,index)=>{
+						_this.searchResult.phoneNumber.push(value.bno)
+					})
+					_this.formData.rows.forEach((value,index)=>{
+						_this.searchResult.intentTag.push(value.intentTag)
+					})
+					_this.formData.rows.forEach((value,index)=>{
+						_this.searchResult.outduration.push(value.outduration)
+					})
+					_this.formData.rows.forEach((value,index)=>{
+						_this.searchResult.talkRound.push(value.talkRound)
+					})
+					_this.formData.rows.forEach((value,index)=>{
+						_this.searchResult.outbegintime.push(value.outbegintime)
+					})
+					_this.formData.rows.forEach((value,index)=>{
+						_this.searchResult.lineNumber.push(value.lineNumber)
+					})
+					_this.formData.rows.forEach((value,index)=>{
+						_this.searchResult.outresult.push(value.outresult)
+					})
 					})
 				.catch(function (error) {
 					console.log(error)
@@ -358,12 +370,13 @@
                         
                     });
                 }
+                console.log(this.checkValue)
             },
 			check(e){
 				if(e.target.checked){
 					console.log(e.target.defaultValue)
 				}
-				
+				console.log(this.checkValue)
 			}
 		},
 		watch:{
@@ -378,7 +391,6 @@
                 deep: true
             },
             keyword () {
-//          	console.log(this.$refs.searchnum.value.trim())
 		      if (this.timer) {
 		        clearInterval(this.timer)
 		      }
@@ -387,22 +399,23 @@
 		        return
 		      }
 		      this.timer = setTimeout(() => {
-		        const result = []
-		        for (let i in this.searchResult.phoneNumber) {
+		      	  this.list = []
 		          this.searchResult.phoneNumber.forEach((value) => {
 		            if (value.indexOf(this.keyword) > -1 ) {
-		              result.push(value)
+		              this.list.push(value)
 		            }
 		          })
-		        }
-		        this.list = result
+		          this.result.phoneNumber=this.list
 		      }, 100)
-		      console.log(this.list)
+		      console.log(this.result.phoneNumber)
 		    }
 		},
-		mounted(){
+		created(){
 				this.getListPages();
-			},
+		},
+		mounted(){
+			
+		}
 	}
 </script>
 
