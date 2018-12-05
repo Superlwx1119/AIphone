@@ -1,45 +1,45 @@
 <template>
 	<div class="slide_cont">
 		<h2 class="callout">拨出记录</h2>
-		<div class="msgCont">
+		<div class="msgCont" @keyup.enter='Search'>
 			<form action="">
 				<table>
 					<tr>
 						<td class="tag">被查号码</td>
 						<td><el-input
-							  v-model='keyword'
-							  placeholder="支持模糊搜索"
-							  ref='searchnum'
-							  clearable>
+							    v-model='keyword'
+							    placeholder="支持模糊搜索"
+							    ref='searchnum'
+							    clearable>
 							</el-input>
 						</td>
 						<td class="tag">开始时间</td>
 						<td><el-date-picker
-									class='widfull'
-						            v-model="filters.column.create_start_date"
-						            type="date"
-						            :picker-options="pickerBeginDateBefore"
-						            format="yyyy-MM-dd"
-						            placeholder="">
+								class='widfull'
+					            v-model="filters.column.create_start_date"
+					            type="date"
+					            :picker-options="pickerBeginDateBefore"
+					            format="yyyy-MM-dd"
+					            placeholder="">
 						    </el-date-picker>
 						</td>
 					</tr>
 					<tr>
 						<td class="tag">结束时间</td>
 						<td><el-date-picker
-									class='widfull'
-						            v-model="filters.column.create_end_date"
-						            type="date"
-						            format="yyyy-MM-dd"
-						            :picker-options="pickerBeginDateAfter"
-						            placeholder="">
+								class='widfull'
+					            v-model="filters.column.create_end_date"
+					            type="date"
+					            format="yyyy-MM-dd"
+					            :picker-options="pickerBeginDateAfter"
+					            placeholder="">
 						    </el-date-picker>
 						</td>
 						<td class="tag">通话时长</td>
 						<td>
 							<el-select v-model="optionDuraValue" class='widfull' @change='changeDura' placeholder="不限">
-								<el-option v-for='item of optionDura' :value='item'>
-								{{item}}
+								<el-option v-for='item of optionDura' :value='item' :key='item'>
+								小于{{item}}秒
 								</el-option>
 							</el-select>
 						</td>
@@ -48,7 +48,7 @@
 						<td class="tag">任务计划</td>
 						<td>
 							<el-select @change="changePlan" v-model="planValue"class='widfull' placeholder="请选择计划">
-								<el-option v-for='item of plan' :value="item">
+								<el-option v-for='item of plan' :value="item" :key='item'>
 								{{item}}
 								</el-option>
 							</el-select>
@@ -56,7 +56,7 @@
 						<td class="tag">呼叫结果</td>
 						<td>
 							<el-select @change="callRes" v-model="resultValue"class='widfull' placeholder="--请选择--">
-								<el-option v-for='item of callResult' :value='item'>
+								<el-option v-for='item of callResult' :value='item' :key='item'>
 								{{item}}
 								</el-option>
 							</el-select>
@@ -79,7 +79,6 @@
 		</table>
 			</form>
 		</div>
-		<!--<p v-for="item of result.phoneNumber">{{item}}</p>-->
 		<table class="selectCont" v-for="(page,index) of pages" >
 			<tr v-if="index+1==pageNumber">
 				<th>被叫信息</th>
@@ -98,22 +97,22 @@
 				<td v-if="page.length"></td>
 				<td v-if="page.length">{{SearchList.intentTag}}</td>
 				<td v-if="page.length">{{SearchList.talkRound}}</td>
-				<td v-if="page.length">{{SearchList.outbegintime}}</td>
-				<td v-if="page.length">0<span class="mint">分</span>{{SearchList.outduration}}<span class="mint">秒</span></td>
+				<td v-if="page.length">{{SearchList.outbegintime|fn}}</td>
+				<td v-if="page.length">{{SearchList.outduration|mint}}</td>
 				<td v-if="page.length">{{SearchList.lineNumber}}</td>
 				<td v-if="page.length">{{SearchList.outresult}}</td>
 				<td v-if="page.length" class="details" @click="showDetail($event)" :id='SearchList.recid'>详情</td>
 			</tr>
 		</table>
-		<div class="pages" >
-			<span>当前页数：[{{pageNumber}}/{{pages.length}}]</span>
+		<div class="pages" v-if="pageNumber>0">
+			<span>当前页数：[{{pages.length==0?0:pageNumber}}/{{pages.length}}]</span>
 			<span class="changepage" @click="firstPage">首页</span>
 			<span class="changepage" @click="prePage">上一页</span>
 			<span class="changepage" @click="nextPage">下一页</span>
 			<span class="changepage" @click="lastPage">末页</span>
 			<span>跳到第<input v-model="pagenum" ref='pageNum' class="pagesNum" type="text"  />页</span>
 			<button @click="jampPage" class="go">GO</button>
-			<span>总共1条，共1页，每页<select name="" v-model="changPagenum" ref='changPage' @change="changPageNum" id=""><option v-for="item of pageListNum">{{item}}</option></select></span>
+			<span>总共{{this.formData.rows.length}}条，共{{pages.length}}页，每页<select name="" v-model="changPagenum" ref='changPage' @change="changPageNum" id=""><option v-for="item of pageListNum">{{item}}</option></select></span>
 		</div>
 		<!--<Datails @close='closeDetail' v-if='detail_onoff' />-->
 		<NumDatails @close='closeDetail' v-if='detail_onoff' :txtArr='txtArr' :detail_data='detail_data' />
@@ -121,17 +120,41 @@
 </template>
 
 <script>
-	import Datails from './datails'
+
 	import NumDatails from './number_detail'
 	import qs from 'qs'
 	import axios from 'axios'
 	export default{
 		name:'slide_cont',
 		components:{
-			Datails,NumDatails
+			NumDatails
 		},
+		filters:{
+		    fn (value){
+		    	//转换拨打时间
+		    	let res=value.split('');
+		        res.splice(4,0,'-')
+			    res.splice(7,0,'-')
+				res.splice(10,0,' ')
+				res.splice(13,0,':')
+				res.splice(16,0,':')
+				return res.toString().replace(/,/g,'')
+	    	},
+	    	mint(s){
+	    		//换算分秒
+	    		let m;
+	    		m = Math.floor(s/60);
+	    		s = s%60;
+	    		m += '';
+	    		s += '';
+	    		m = (m.length==1)?'0'+m:m;
+    			s = (s.length==1)?'0'+s:s;
+	    		return m+'分'+s+'秒'
+	    	}
+	    },
 		data(){
 			    return {
+			    	sea:false,
 			    	pagenum:1,
 			    	changPagenum:10,
 			    	pageNumber:1,
@@ -195,16 +218,7 @@
 			        	outbegintime:[],
 			        	rows:[]
 			        },
-			        result:{
-			        	rows:[],
-			        	phoneNumber:[],
-			        	intentTag:[],
-			        	talkRound:[],
-			        	outbegintime:[],
-			        	outduration:[],
-			        	lineNumber:[],
-			        	outresult:[]
-			        },
+			        result:[],
 			        detail_data:{},
 			        list:[],
 			        txtArr:[]
@@ -218,13 +232,24 @@
 			pages(){
 				//每页显示数据
 		  		const pages = []; // pages是为二维数组
-		        this.formData.rows.forEach((item, index) => {
-		          const page = Math.floor(index / this.changPagenum); 
-		          if (!pages[page]) {
-		            pages[page] = [];
-		          }
-		          pages[page].push(item);
-		        });
+		  		if(!this.result.length){
+		  			this.formData.rows.forEach((item, index) => {
+			          const page = Math.floor(index / this.changPagenum); 
+			          if (!pages[page]) {
+			            pages[page] = [];
+			          }
+			          pages[page].push(item);
+			        });
+		  		}else{
+		  			this.result.forEach((item, index) => {
+			          const page = Math.floor(index / this.changPagenum); 
+			          if (!pages[page]) {
+			            pages[page] = [];
+			          }
+			          pages[page].push(item);
+			        });
+		  		}
+		        
 		        return pages;
 		  	}
 		},
@@ -242,7 +267,6 @@
 			changPageNum(){
 				//改变每页数据个数
 		  		this.changPagenum=this.$refs.changPage.value.trim()
-		  		console.log(this.changPagenum)
 		  	},
 			firstPage(){
 				//数据首页
@@ -278,7 +302,7 @@
 					recid:id
 				}, {
 	              emulateJSON: true
-	            }).then((data)=>{
+	           }).then((data)=>{
 	            	this.detail_data=data.body;
 	            	var str = this.detail_data.magicCode;
 	            	var arr = str.split('|')
@@ -286,17 +310,25 @@
 	            })
 			},
 			Search(){
-				//查询匹配操作
-				var _this=this;
-				console.log(_this.result.phoneNumber)//号码模糊搜索数组
-				var tag_node=_this.formData.rows.filter(function(e){
-					return e.talkRound==_this.$refs.callround.value.trim()||e.intentTag=='A'&&e.bno==_this.result.phoneNumber[0]
-				})
-				console.log(tag_node)
+				this.sea=true;
+				let newData=this.formData.rows.filter(item=>{
+					let res=item.outbegintime.split('');
+					res.splice(4,0,'/')
+				    res.splice(7,0,'/')
+					res.splice(10,0,' ')
+					res.splice(13,0,':')
+					res.splice(16,0,':')
+					res.toString().replace(/,/g,'')
+					let timeRes=res.toString().replace(/,/g,'')
+					let time = new Date (timeRes).getTime()
+					console.log(item.intentTag.indexOf(this.checkValue),item.bno.indexOf(this.keyword))
+					return item.bno.indexOf(this.keyword)>=0 && item.intentTag.indexOf(this.checkValue)>=0&& item.talkRound==this.$refs.callround.value.trim()&&time>=Number(this.filters.column.create_start_date)&&time<=Number(this.filters.column.create_end_date)
+				});
+				console.log(newData)
+				this.result=newData;
 //				console.log(this.$refs.callround.value.trim())
 //				console.log(this.checktag)
 //				console.log(this.$refs.searchnum.value.trim())
-//				console.log(this.formData.rows)
 //				console.log(Number(this.filters.column.create_start_date))
 //				console.log(Number(this.filters.column.create_end_date))
 //				console.log(this.druChecked)
@@ -370,7 +402,6 @@
                         
                     });
                 }
-                console.log(this.checkValue)
             },
 			check(e){
 				if(e.target.checked){
@@ -424,6 +455,12 @@
 		padding: 0;
 		margin: 0;
 		list-style: none;
+	}
+	.sss{
+		width: 300px;
+		background: red;
+		word-break: break-all;
+		word-wrap: break-word;
 	}
 	.slide_cont{
 	}

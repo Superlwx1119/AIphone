@@ -30,7 +30,7 @@
 							<td class="blue">时长(秒)：</td>
 							<td>{{detail_data.duration}}</td>
 							<td class="blue">时间：</td>
-							<td>{{detail_data.begtime}}</td>
+							<td>{{detail_data.begtime|fn}}</td>
 						</tr>
 						<tr>
 							<td class="blue">拨出号码：</td>
@@ -78,7 +78,7 @@
 					</el-col>
 					<el-col :span='12'>
 						<div class="talkMsg">
-							<p :class="{'left':item.split(':')[0]=='Amain1-kaichangbai','right':item.split(':')[0]=='admin2'}" v-for="item of txtArr"><img src="../../../assets/img/touxiang.png"/><span>{{item.split(':')[1]}}</span></p>
+							<div :class="{'left':item.split(':')[0]=='Amain1-kaichangbai','right':item.split(':')[0]=='Amain2-chanpinmiaoshu'}" v-for="item of txtArr"><img src="../../../assets/img/touxiang.png"/><p><i></i>{{item.split(':')[1]}}</p></div>
 						</div>
 					</el-col>
 				</el-row>
@@ -119,6 +119,18 @@
 	export default{
 		name:'number_detail',
 		directives: {clickoutside},
+		filters:{
+			fn (value){
+		    	//转换拨打时间
+		    	let res=value.split('');
+		        res.splice(4,0,'-')
+			    res.splice(7,0,'-')
+				res.splice(10,0,' ')
+				res.splice(13,0,':')
+				res.splice(16,0,':')
+				return res.toString().replace(/,/g,'')
+	    	}
+		},
 		data(){
 			return {
 				close:false,
@@ -163,15 +175,46 @@
 	.right{
 		float: right;
 		clear: both;
-		height: 40px;
 		line-height: 40px;
+	}
+	.left i{
+		display: block;
+		position: absolute;
+		top: 10px;
+		left: 30px;
+		width: 0px;
+		height: 0px;
+		border: 10px solid;
+		border-color: transparent gainsboro transparent transparent
+	}
+	.right i{
+		display: block;
+		position: absolute;
+		top: 10px;
+		right: 32px;
+		width: 0px;
+		height: 0px;
+		border: 10px solid;
+		border-color: transparent transparent transparent lightskyblue
+	}
+	.left,.right div{
+		word-break: break-all;
 	}
 	.right img{
 		float: right;
 		clear: both;
 	}
+	.left img{
+		float: left;
+		clear: both;
+	}
+	.left p{
+		background: gainsboro;
+	}
+	.right p{
+		background: lightskyblue;
+	}
 	.left{
-		height: 40px;
 		line-height: 40px;
 		float: left;
 		clear: both;
@@ -230,8 +273,9 @@
 		background: lavender;
 	}
 	.talkMsg{
-		overflow: overlay;
 		height: 600px;
+		overflow-x: hidden; 
+		overflow-y: auto;
 	}
 	.talkMsg img{
 		width: 30px;
@@ -239,11 +283,19 @@
 		vertical-align: middle;
 		padding: 5px;
 	}
-	.talkMsg p{
+	.talkMsg >div{
 		margin: 10px 0;
+		position: relative;
+		word-break: break-all;
+		word-wrap: break-word;
 	}
-	.talkMsg span{
-		background: lightblue;
-		padding: 10px;
+	.talkMsg p{
+		display: inline-block;
+		word-break: break-all;
+		word-wrap: break-word;
+		border-radius: 5px;
+		font-size: 14px;
+		padding: 5px;
+		margin: 0px 10px;
 	}
 </style>
