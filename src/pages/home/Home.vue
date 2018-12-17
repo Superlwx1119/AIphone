@@ -12,11 +12,13 @@
 		</div>
 		<div class="content" >
 			<el-row>
-				<el-col :span='4'>
-				<Nav_slide class="left_cont"/>
+				<el-col :span='3'>
+				<Nav_slide class="left_cont" @changeTab='changeTab'/>
 				</el-col>
-				<el-col :span='20'>
-				<Slide_cont class='right_cont'  />
+				<el-col :span='21'>
+				<CustomerCont v-if="choseTab=='客户列表'"/>
+				<CallPlans v-if="choseTab=='呼叫计划'"/>
+				<Slide_cont class='right_cont'  v-if="choseTab=='结果记录'"/>
 				</el-col>
 			</el-row>
 		</div>
@@ -25,22 +27,28 @@
 
 <script>
 	import Nav_slide from './components/nav_slide'
-	import Slide_cont from './components/slide_cont'
+	import Slide_cont from './components/resultPage/slide_cont'
+	import CustomerCont from './components/CustomerList/CustomerCont'
+	import CallPlans from './components/callPlans/callPlan'
 	import axios from 'axios'
 	import qs from 'qs'
 	export default{
 		name:'Home',
 		data(){
 			return{
+				choseTab:'客户列表',
 			}
 		},
 		methods:{
-			
+			changeTab(val){
+				this.choseTab=val
+			}
 		},
 		components:{
 			Nav_slide,
 			Slide_cont,
-			
+			CustomerCont,
+			CallPlans
 		}
 	}
 </script>
@@ -56,16 +64,17 @@
 	}
 	.header{
 		background: #36a9e1;
-		height: 60px;
+		height: 5vh;
 		width:100%;
-		line-height: 60px;
+		line-height: 5vh;
 		color: white;
 		margin: 0 auto;
 	}
 	.header >p{
+		height: 5vh;
 		float: left;
 		font-size: 17px;
-		width: 414px;
+		width: 35vh;
 		background: #1e8fc6;
 	}
 	.user{
@@ -73,7 +82,7 @@
 		cursor: pointer;
 		float: right;
 		font-size: 12px;
-		height: 60px;
+		height: 5vh;
 		width: 145px;
 	}
 	.name{
@@ -99,6 +108,7 @@
 		overflow: hidden;
 		white-space:nowrap; 
 		width: 100%;
+		height: 94vh;
 		margin: 0 auto;
 	}
 </style>

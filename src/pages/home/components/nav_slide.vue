@@ -20,18 +20,30 @@
 		name:"Nav_slide",
 		data(){
 			return{
-				AIuser:['客户列表','客户列表','结果记录'],
+				AIuser:['客户列表','呼叫计划','结果记录'],
 				AIsetting:['黑名单','云账号','外呼线路','短信模块审查'],
-				tabIndex:null,
+				tabIndex:0,
 				settabIndex:null
 			}
 		},
 		methods:{
 			tabCheck(index){
-				this.tabIndex=index
+				if(this.settabIndex!=null){
+					this.settabIndex=null
+					this.tabIndex=index
+				}else{
+					this.tabIndex=index
+				}
+				this.$emit('changeTab',this.AIuser[index])
 			},
 			tabsetCheck(index){
-				this.settabIndex=index
+				if(this.tabIndex!=null){
+					this.tabIndex=null
+					this.settabIndex=index
+				}else{
+					this.settabIndex=index
+				}
+				this.$emit('changeTab',this.AIsetting[index])
 			}
 		}
 	}
@@ -45,24 +57,26 @@
 		
 	}
 	.left_slide{
+		height: 100vh;
+		box-sizing: border-box;
 		background: #383e4b;
 		color: white;
 		padding-top: 10px;
 	}
 	h3{
 		font-weight: normal;
-		font-size: 14px;
+		font-size: 16px;
 		background: #3e4d59;
 		height: 40px;
 		line-height: 40px;
 		padding-left: 24px;
 	}
 	li{
-		text-indent: 5px;
+		text-indent: 10px;
 		height: 40px;
 		line-height: 40px;
 		cursor: pointer;
-		font-size: 12px;
+		font-size: 14px;
 		padding-left: 24px;
 	}
 	li:hover{

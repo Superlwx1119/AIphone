@@ -1,14 +1,16 @@
 <template>
-	<div class="slide_cont">
+	<div class="slide_cont" v-loading="$store.state.showLoading" element-loading-text="拼命加载中"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(0, 0, 0, 0.8)">
 		<h2 class="callout">拨出记录</h2>
 		<div class="msgCont" @keyup.enter='Search'>
-			<form action="">
 				<table>
 					<tr>
 						<td class="tag">被查号码</td>
 						<td><el-input
 							    v-model='keyword'
 							    placeholder="支持模糊搜索"
+							    auto-complete='on'
 							    ref='searchnum'
 							    clearable>
 							</el-input>
@@ -67,7 +69,7 @@
 						<td class="tag">意向标签</td>
 						<td class="quan">
 							<label for="all"><input v-model="checkAll" type="checkbox" @click="checkedAll"  id="all" />所有</label>
-							<label v-for="item of tagData" :for="item"><input  :value="item"  v-model="checkValue" type="checkbox" name="" :id="item" />{{item}}</label>
+							<label v-for="item of tagData" :for="item"><input @click="fn"  :value="item"  v-model="checkValue" type="checkbox" name="" :id="item" />{{item}}</label>
 						</td>
 						<td class="tag">对话轮次</td>
 						<td><el-input
@@ -78,10 +80,9 @@
 							</el-input><el-button @click='Search' class='search' type="primary" icon="el-icon-search">查询</el-button></td>
 					</tr>
 		</table>
-			</form>
-		</div>
-		<p v-if="DataNull" class="dataNull">无 匹 配 数 据 !</p>
-		<table class="selectCont" v-for="(page,index) of pages" >
+	</div>
+		<p v-show="DataNull" class="dataNull">无 匹 配 数 据 !</p>
+		<table  class="selectCont" v-for="(page,index) of pages" >
 			<thead>
 				<tr v-if="index+1==pageNumber">
 					<th>被叫信息</th>
@@ -121,6 +122,7 @@
 		</div>
 		<!--<Datails @close='closeDetail' v-if='detail_onoff' />-->
 		<NumDatails @close='closeDetail' v-if='detail_onoff' :txtArr='txtArr' :detail_onoff='detail_onoff' :detail_data='detail_data' />
+		<div class="whiteSpace" v-if="formData.rows.length==0"></div>
 	</div>
 </template>
 
@@ -325,6 +327,9 @@
 		  	}
 		},
 		methods:{
+			fn(){
+//				console.log(this.checkValue)
+			},
 			jampPage(){
 				//数据分页跳转
 		  		if(this.$refs.pageNum.value.trim()==''||this.$refs.pageNum.value.trim()>this.pages.length){
@@ -470,7 +475,7 @@
 				  pageSize: "20",
 				  type: "1",
 				});
-				axios.post('http://172.16.10.101:8080/AICALL2018/queryOutresultinfoListPage', data)
+				axios.post('http://172.16.10.101:8080/AICALL2018/queryOutresultinfoListPage', data,{timeout:10000})
 				.then((res)=>{
 					res=res.data;
 //					console.log(res)
@@ -482,8 +487,12 @@
 						_this.searchResult.phoneNumber.push(value.bno)
 					})
 					})
-				.catch(function (error) {
-					console.log(error)
+				.catch((error)=>{
+					let str=error+''
+					if(str.search('timeout')==7){
+						this.$message.error('请求超时!');
+						this.$store.state.showLoading=false
+					}
 				});
 				
 			},
@@ -534,7 +543,7 @@
 		    }
 		},
 		created(){
-				this.getListPages();
+			this.getListPages();
 		},
 	}
 </script>
@@ -549,7 +558,7 @@
 		position: relative;
 	}
 	.callout{
-		font-size: 14px;
+		font-size: 16px;
 		color: #39afea;
 		border-bottom: 1px solid #e6e6e6;
 		height: 4vh;
@@ -567,16 +576,18 @@
 	.msgCont{
 		border: 1px solid #cacaca;
 		margin: 12px 10px;
-		font-size: 12px;
+		font-size: 14px;
 	}
 	.msgCont tr{
 		margin: 0 auto;
+		font-size: 14px;
 	}
 	.msgCont td{
 		width: 320px;
 		padding: 3px 0px;
 		height: 30px;
 		line-height: 30px;
+		font-size: 14px;
 	}
 	.msgCont .tag{
 		padding-left: 5vh;
@@ -584,8 +595,7 @@
 		text-align: center;
 	}
 	.widfull{
-		width: 100%;
-		height: 40px;
+		height: 30px;
 		box-sizing: border-box;
 		border-radius: 5px;
 		border: 1px solid gainsboro;
@@ -620,19 +630,19 @@
 	.selectCont th{
 		background: #d0e9f3;
 		font-weight: normal;
-		font-size: 12px;
+		font-size: 14px;
 		height: 40px;
 		line-height: 40px;
 	}
 	.search{
-		width: 65px;
+		width: 7vh;
 		height: 30px;
 		background: #36a9e1;
 	}
 	.calltimes{
-		width: 250px;
+		width: 37vh;
 		height: 36px;
-		margin-right: 5px;
+		margin-right: 1vh;
 	}
 	.selectCont tbody tr:hover{
 		background: #d0e9f3 !important;
@@ -640,7 +650,7 @@
 	.selectCont td{
 		box-sizing: border-box;
 		text-align: center;
-		font-size: 12px;
+		font-size: 14px;
 		color: #383e4b;
 		height: 48px;
 		line-height: 48px;
@@ -669,16 +679,6 @@
 	.details{
 		cursor: pointer;
 	}
-	.go{
-		height: 26px;
-		width: 32px;
-		background: #2092c1;
-		border: none;
-		color: white;
-		outline: none;
-		cursor: pointer;
-		border-radius: 3px;
-	}
 	.mint{
 		color: blue;
 	}
@@ -696,5 +696,7 @@
 		padding-right: 3px;
 		cursor: pointer;
 	}
-	
+	.whiteSpace{
+		height: 75vh;
+	}
 </style>
